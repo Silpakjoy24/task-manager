@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% load static %}
+
+    <meta charset="UTF-8">
+    <title>Task Manager</title>
+
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon.png' %}">
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f8fafc;
+    --muted: #cbd5f5;
+    --accent: #6366f1;
+}
+
+body.light {
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+}
+
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.navbar {
+    background: var(--card);
+}
+
+/* Navbar */
+.navbar-brand {
+    color: #60a5fa !important;
+    font-weight: bold;
+}
+
+/* Cards */
+.card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    color: var(--text);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* Headings inside cards */
+.card h6 {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* Numbers */
+.card h3 {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Special colors */
+.text-success {
+    color: #22c55e !important;
+}
+
+.text-danger {
+    color: #ef4444 !important;
+}
+
+.text-primary {
+    color: #6366f1 !important;
+}
+
+/* Button */
+.btn-primary {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+}
+
+/* Badge */
+.badge {
+    background: var(--accent);
+}
+
+/* Task item */
+.task-item {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Muted text */
+.text-muted {
+    color: var(--muted) !important;
+}
+
+    .task-desc {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar px-4 d-flex justify-content-between">
+    <span class="navbar-brand text-primary">Task Manager</span>
+<button class="btn btn-sm btn-outline-light" onclick="toggleTheme()">
+            🌙 / ☀️
+        </button>
+    </div>
+
+
+    <div class="dropdown">
+        <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+            Profile
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'profile' %}">View Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'settings' %}">Settings</a></li>
+            <li><a class="dropdown-item" href="{% url 'change_password' %}">Change Password</a></li>
+            <li><hr></li>
+            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+<!-- STATS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Total</h6>
+            <h3>{{ total }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Completed</h6>
+            <h3 class="text-success">{{ completed }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Pending</h6>
+            <h3 class="text-danger">{{ pending }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Add Task</h6>
+            <a href="{% url 'add_task' %}" class="btn btn-primary">+ Add</a>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN SECTION -->
+<div class="row g-4">
+
+    <!-- LEFT: TASK LIST -->
+    <div class="col-lg-8">
+        <div class="card p-3">
+
+            <h5>My Tasks</h5>
+
+            {% if selected_category %}
+                <p class="text-info">Showing: {{ selected_category }} tasks</p>
+            {% endif %}
+
+            {% for task in tasks %}
+            <div class="task-item d-flex justify-content-between align-items-start">
+
+                <div>
+
+                <div onclick="toggleDesc({{ task.id }})" style="cursor:pointer;">
+                    <strong {% if task.completed %}style="text-decoration: line-through; opacity:0.6;"{% endif %}>
+                        {{ task.title }}
+                    </strong>
+                </div>
+
+
+
+{#                    <span {% if task.completed %}style="text-decoration: line-through; opacity:0.6;"{% endif %}>#}
+{#                        {{ task.title }}#}
+{#                    </span>#}
+                    <br>
+                    <small class="text-muted">{{ task.deadline }}</small>
+
+                <div id="desc-{{ task.id }}" class="task-desc" style="display:none;">
+                    {{ task.description }}
+                </div>
+
+                </div>
+
+                <div class="d-flex gap-2 align-items-center">
+
+                    <span class="badge
+                        {% if task.priority == 'High' %}bg-danger
+                        {% elif task.priority == 'Medium' %}bg-warning
+                        {% else %}bg-success
+                        {% endif %}">
+                        {{ task.category }}
+                    </span>
+
+                    {% if not task.completed %}
+                    <a href="{% url 'mark_completed' task.id %}" class="btn btn-sm btn-success">✔</a>
+                    {% else %}
+                    <span class="text-success">Done</span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            {% empty %}
+            <p class="text-muted">No tasks found</p>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <!-- RIGHT: CATEGORY -->
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h5>Categories</h5>
+
+            {% for cat in categories %}
+            <p>
+                <a href="?category={{ cat.category }}" style="text-decoration:none; color:inherit;">
+
+                    <span class="badge
+                        {% if cat.category == 'Work' %}bg-danger
+                        {% elif cat.category == 'Study' %}bg-warning
+                        {% elif cat.category == 'Personal' %}bg-success
+                        {% else %}bg-info
+                        {% endif %}">
+                        {{ cat.category }}
+                    </span>
+
+                    {{ cat.count }} Tasks
+                </a>
+            </p>
+            {% endfor %}
+
+            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-light mt-2">
+                Show All
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+
+<div class="row g-4 mt-3">
+
+   <div class="col-lg-6">
+    <div class="card p-3">
+        <h5>Reminders 🔔</h5>
+
+        <!-- TODAY TASKS -->
+        {% for task in today_tasks %}
+        <div class="task-item d-flex justify-content-between">
+            <span>{{ task.title }}</span>
+            <small class="text-warning">Today</small>
+        </div>
+        {% endfor %}
+
+        <!-- TOMORROW TASKS -->
+        {% for task in tomorrow_tasks %}
+        <div class="task-item d-flex justify-content-between">
+            <span>{{ task.title }}</span>
+            <small class="text-danger">Tomorrow</small>
+        </div>
+        {% endfor %}
+
+        <!-- HIGH PRIORITY TASKS -->
+        {% for task in high_priority_tasks %}
+        <div class="task-item d-flex justify-content-between">
+            <span>{{ task.title }}</span>
+            <small class="text-info">High Priority</small>
+        </div>
+        {% endfor %}
+
+        <!-- EMPTY STATE -->
+        {% if not today_tasks and not tomorrow_tasks and not high_priority_tasks %}
+        <p class="text-muted mt-2">No reminders 🎉</p>
+        {% endif %}
+
+    </div>
+</div>
+
+
+   <div class="col-lg-6">
+        <div class="card">
+            <h5>Task Progress 📊</h5>
+            <canvas id="taskChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function toggleTheme() {
+    document.body.classList.toggle("light");
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('taskChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Completed', 'Pending'],
+        datasets: [{
+            data: [{{ completed }}, {{ pending }}],
+            backgroundColor: ['#22c55e', '#ef4444']
+        }]
+    }
+});
+
+
+
+/* Description style */
+
+
+
+</script>
+
+<script>
+function toggleDesc(id) {
+    let el = document.getElementById("desc-" + id);
+
+    if (el.style.display === "none" || el.style.display === "") {
+        el.style.display = "block";
+    } else {
+        el.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>
+
+

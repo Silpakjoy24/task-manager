@@ -1,0 +1,1 @@
+web: gunicorn cyber_camouflage.wsgi
